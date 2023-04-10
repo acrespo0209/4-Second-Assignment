@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The 4 Seconds Game~</title>
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+
+
+</head>
+<style>
+    .big{
+        transform: scale(3);
+    }
+    .hide{
+        visibility: hidden;
+    }
+</style>
+<body>
+
+
+<nav class="navbar navbar-light" style="background-color: #87CEEB;">
+  <div class="container-fluid">
+    <a class="navbar-brand" id="navLogo" href="#">The 4 Seconds Game!</a>
+    <span class="navbar-text">
+      </span>
+  </div>
+</nav>
+
+
+<div class="position-absolute top-50 start-50 translate-middle">
+  <div class="big" style="text-align: center">
+    <div id="counter" >
+      0.00
+    </div>
+    <div class="col">
+      <button type="button" id="start-stop-btn" onclick="changeState(event)" class="btn btn-success btn-lg">Start</button>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+
+</body>
+<script>
+    var  timesList = new Array();;
+    let seconds = 4;
+    let startTime=0;
+    let stopTime=0;
+    var navLogo = document.querySelector('#navLogo');
+    var counter = document.querySelector('#counter');
+    counter.style.visibility = "hidden"
+    var inputSeconds = document.querySelector('#inputSeconds');
+    inputSeconds.value = seconds
+
+      function confirmPrompt(msg, callback){
+        var prompt = document.querySelector('#confirmMessage')
+        prompt.innerHTML = msg
+        var callbackYesButton = document.querySelector('#confirmYes')
+        callbackYesButton.setAttribute("onclick",callback)
+        var confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'), {
+        keyboard: false
+    })
+    confirmModal.show()
+
+      }
+      function resetGame(){
+        window.location.reload(true);
+      }
+
+    function hideElement(element){
+
+     element.style.visibility = 'hidden'
+
+    }
+    function showElement(element){
+
+        element.style.visibility = ''
+
+    }
+
+    function updateSeconds(){
+        navLogo.innerHTML=seconds + " Seconds";
+    }
+
+function updateTable(){
+
+    scoreTableBody.innerHTML = "";
+    let tableString ="";
+    let chartOfftime = ['Off By'];
+    var chart = c3.generate({
+    bindto: '#chart',
+    data: {
+      columns: [ ['Off By'] ]
+    }
+
+});
+totalAttempts = 0
+minOff = 1000000000000
+maxOff = 0
+offSum = 0
+avgOff = 0
+    for(score of timesList){
+        totalAttempts +=1
+        offSum += Number(score.offTime);
+        if(minOff > score.offTime){
+            minOff = score.offTime
+        }
+        if(maxOff < score.offTime){
+            maxOff = score.offTime
+        }
+        tableString += "<tr class=\"table-"+score.color+"\"> \n"
+        tableString += "<th >"+score.number+"</th>\n"
+        tableString += "<td >"+score.target+"</td>\n"
+        tableString += "<td >"+score.time+"</td>\n"
+        tableString += "<td>"+score.offTime+"</td>\n"
+        tableString += "</tr>\n"
+        chartOfftime.push(score.offTime);
+    }
+    avgOff = (Number(offSum) / Number(totalAttempts)).toFixed(2);
+
+    document.querySelector('#avgOff').innerHTML = avgOff
+    document.querySelector('#minOff').innerHTML = minOff
+    document.querySelector('#maxOff').innerHTML = maxOff
+    document.querySelector('#totalAttempts').innerHTML = totalAttempts
+
+chart.load({
+        columns: [
+        chartOfftime
+        ]
+    });
+    chart.flush();
+    console.log(tableString)
+    scoreTableBody.innerHTML += tableString;
+}
+$('#scoreStatsAccordion').on('shown.bs.collapse', function () {
+  console.log('stats acc has been triggered')
+});
+    function changeState(evt){
+        const d = new Date();
+        let time = d.getTime()
+       let  resTime;
+        const button =  document.querySelector('#start-stop-btn');
+        if(button.innerHTML === "Start"){
+            hideElement(counter)
+            startTime = time
+
+            button.innerHTML  = 'Stop';
+            button.classList.remove("btn-success")
+            button.classList.add("btn-danger")
+
+        }
+        else{
+            stopTime = time
+            resTime = ((stopTime - startTime)/1000).toFixed(2)
+            counter.innerHTML = resTime + " Seconds"
+            let offTime = Math.abs(resTime -Number(seconds)).toFixed(2)
+            let timeColor;
+            if(offTime < .2){
+                timeColor = "primary"
+                document.body.style.backgroundColor = '#87CEEB'
+
+            }
+            else{
+                if(offTime < .5){
+                    timeColor="warning"
+                    document.body.style.backgroundColor = '#FFFF00'
+
+                }
+                else{
+                    timeColor = "danger"
+
+                    document.body.style.backgroundColor ='#8b0000'
+                }
+            }
+
+            showElement(counter)
+
+
+            button.innerHTML  = 'Start';
+            button.classList.remove("btn-danger")
+            button.classList.add("btn-success")
+            timesList.push({
+                "number":timesList.length+1,
+                "target":Number(seconds),
+                "time":resTime,
+                "offTime":offTime,
+                "color":timeColor
+            })
+
+        }
+
+    }
+
+    </script>
+</html>
